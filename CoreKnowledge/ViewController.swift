@@ -222,14 +222,22 @@ extension ViewController {
     
     // MARK: - ImageView Animation & Gesture
     private func imageViewGesture() {
-        let gesture = UISwipeGestureRecognizer(target: self, action: #selector(imageViewSwiped(_:)))
+        
+        self.musicImageView.isUserInteractionEnabled = true
+
+        
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(imageViewSwiped(_:)))
         // gesture.numberOfTapsRequired = 2
         // Touches -> Single place we touch on the screen.
         // gesture.numberOfTouchesRequired = 1
-        gesture.direction = .left
+        swipeLeft.direction = .left
         
-        self.musicImageView.addGestureRecognizer(gesture)
-        self.musicImageView.isUserInteractionEnabled = true
+        self.musicImageView.addGestureRecognizer(swipeLeft)
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(imageViewSwiped(_:)))
+        swipeRight.direction = .right
+        
+        self.musicImageView.addGestureRecognizer(swipeRight)
     }
     
     
@@ -238,26 +246,58 @@ extension ViewController {
         self.musicImageView.alpha = 0
         self.musicImageView.center = CGPoint(x: self.musicImageView.center.x + 500, y: self.musicImageView.center.y)
         
-        
-        if selectedRow < musics.count {
-            selectedRow += 1
-        }
-        
-        if gesture.state == .ended {
-            
-            UIView.animate(withDuration: 1.2) {
-                self.musicImageView.alpha = 1
-                
-                self.musicImageView.center = CGPoint(x: self.musicImageView.center.x - 500, y: self.musicImageView.center.y)
-                
-                self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
-                
-                self.highlightTableViewRow(index: self.selectedRow)
-                
-                self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
+        switch gesture.direction {
+        case .left:
+            if selectedRow < musics.count {
+                selectedRow += 1
             }
             
+            if gesture.state == .ended {
+                
+                UIView.animate(withDuration: 1.2) {
+                    self.musicImageView.alpha = 1
+                    
+                    self.musicImageView.center = CGPoint(x: self.musicImageView.center.x - 500, y: self.musicImageView.center.y)
+                    
+                    self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
+                    
+                    self.highlightTableViewRow(index: self.selectedRow)
+                    
+                    self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
+                }
+                
+            }
+        case .right:
+            
+            if selectedRow == 0 { return }
+            if selectedRow >= 0 { selectedRow -= 1 }
+            
+            if gesture.state == .ended {
+                
+                UIView.animate(withDuration: 1.2) {
+                    self.musicImageView.alpha = 1
+                    
+                    self.musicImageView.center = CGPoint(x: self.musicImageView.center.x + 500, y: self.musicImageView.center.y)
+                    
+                    self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
+                    
+                    self.highlightTableViewRow(index: self.selectedRow)
+                    
+                    self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
+                }
+                
+            }
+        case .up:
+            break
+        case .down:
+            break
+        default:
+            break
         }
+        
+        
+        
+        
         
     }
     
