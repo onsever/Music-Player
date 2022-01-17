@@ -7,7 +7,7 @@
 
 import UIKit
 import AVFoundation
-// TODO: Implement a Tap Gesture to the Slider. (We don't want to force user to slide, he / she can tap on the Slider to change it's current value.)
+// TODO: Fix the bug / logic of selectedRow.
 class ViewController: UIViewController {
     
     // MARK: - Properties
@@ -117,7 +117,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         resetAll()
-        
+        selectedRow = indexPath.row
         playAudio(for: self.musics[indexPath.row].getCurrentPath()!)
         
         guard let image = musics[indexPath.row].getMusicImage() else {
@@ -220,16 +220,12 @@ extension ViewController {
         }
     }
     
-    // MARK: - ImageView Animation & Gesture
+    // MARK: - ImageView Gesture Method
     private func imageViewGesture() {
         
         self.musicImageView.isUserInteractionEnabled = true
 
-        
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(imageViewSwiped(_:)))
-        // gesture.numberOfTapsRequired = 2
-        // Touches -> Single place we touch on the screen.
-        // gesture.numberOfTouchesRequired = 1
         swipeLeft.direction = .left
         
         self.musicImageView.addGestureRecognizer(swipeLeft)
@@ -244,28 +240,21 @@ extension ViewController {
     @objc private func imageViewSwiped(_ gesture: UISwipeGestureRecognizer) {
         
         self.musicImageView.alpha = 0
-        self.musicImageView.center = CGPoint(x: self.musicImageView.center.x + 500, y: self.musicImageView.center.y)
         
         switch gesture.direction {
         case .left:
+            
+            if selectedRow == musics.count - 1 {
+                selectedRow = 0
+                return
+            }
+            
             if selectedRow < musics.count {
                 selectedRow += 1
             }
             
             if gesture.state == .ended {
-                
-                UIView.animate(withDuration: 1.2) {
-                    self.musicImageView.alpha = 1
-                    
-                    self.musicImageView.center = CGPoint(x: self.musicImageView.center.x - 500, y: self.musicImageView.center.y)
-                    
-                    self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
-                    
-                    self.highlightTableViewRow(index: self.selectedRow)
-                    
-                    self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
-                }
-                
+                animateImageView(to: -500)
             }
         case .right:
             
@@ -273,19 +262,7 @@ extension ViewController {
             if selectedRow >= 0 { selectedRow -= 1 }
             
             if gesture.state == .ended {
-                
-                UIView.animate(withDuration: 1.2) {
-                    self.musicImageView.alpha = 1
-                    
-                    self.musicImageView.center = CGPoint(x: self.musicImageView.center.x + 500, y: self.musicImageView.center.y)
-                    
-                    self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
-                    
-                    self.highlightTableViewRow(index: self.selectedRow)
-                    
-                    self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
-                }
-                
+                animateImageView(to: 500)
             }
         case .up:
             break
@@ -294,10 +271,6 @@ extension ViewController {
         default:
             break
         }
-        
-        
-        
-        
         
     }
     
@@ -321,6 +294,23 @@ extension ViewController {
     // MARK: - Highlighting TableView Method
     private func highlightTableViewRow(index: Int) {
         musicTableView.selectRow(at: IndexPath(row: index, section: 0), animated: true, scrollPosition: .none)
+    }
+    
+    // MARK: - ImageView Animation Method
+    private func animateImageView(to x: CGFloat) {
+        UIView.animate(withDuration: 1.2) {
+            self.musicImageView.alpha = 1
+            
+            self.musicImageView.center = CGPoint(
+                x: x < 0 ? self.musicImageView.center.x - 500: self.musicImageView.center.x + 500,
+                y: self.musicImageView.center.y)
+            
+            self.playAudio(for: self.musics[self.selectedRow].getCurrentPath()!)
+            
+            self.highlightTableViewRow(index: self.selectedRow)
+            
+            self.musicImageView.image = self.musics[self.selectedRow].getMusicImage()
+        }
     }
     
     
