@@ -30,6 +30,7 @@ class ViewController: UIViewController {
         configureTableView()
         defaultMusicSelectedWhenViewLoads()
         imageViewGesture()
+        sliderIsTapped()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -260,6 +261,24 @@ extension ViewController {
         
     }
     
+    // MARK: - Slider Tap Gesture
+    private func sliderIsTapped() {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(sliderTappedOn(_:)))
+        self.musicSlider.addGestureRecognizer(gesture)
+    }
+    
+    @objc private func sliderTappedOn(_ gesture: UITapGestureRecognizer) {
+        let pointTapped: CGPoint = gesture.location(in: self.view)
+        
+        let positionOfSlider: CGPoint = musicSlider.frame.origin
+        let widthOfSlider: CGFloat = musicSlider.frame.size.width
+        let newValue = ((pointTapped.x - positionOfSlider.x)) * CGFloat(musicSlider.maximumValue) / widthOfSlider
+        
+        musicSlider.setValue(Float(newValue), animated: true)
+        player.currentTime = TimeInterval(musicSlider.value)
+    }
+    
+    // MARK: - Highlighting TableView Method
     private func highlightTableViewRow(index: Int) {
         musicTableView.selectRow(at: IndexPath(row: index, section: 0), animated: true, scrollPosition: .none)
     }
